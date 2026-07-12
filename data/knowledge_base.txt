@@ -1,0 +1,87 @@
+NASA C-MAPSS Turbofan Engine Predictive Maintenance Knowledge Base
+
+Turbofan Engine Degradation Overview
+
+Turbofan engines degrade over time due to multiple interacting mechanisms. The NASA C-MAPSS (Commercial Modular Aero-Propulsion System Simulation) dataset provides sensor readings from 21 sensors (S01-S21) across multiple engine operating cycles. These sensors track temperature, pressure, speed, and other critical parameters.
+
+Key Degradation Mechanisms:
+1. HPC (High Pressure Compressor) Fouling: Gradual accumulation of deposits on compressor blades reduces aerodynamic efficiency. Manifests as decreased HPC efficiency and pressure ratio. Sensor indicators: S07 (HPC outlet pressure), S11 (static pressure at HPC outlet), S12 (corrected core speed).
+
+2. Turbine Blade Creep: Slow, time-dependent deformation of turbine blades under high temperature and centrifugal stress. Increases with engine operating temperature. Sensor indicators: S04 (total temperature at LPC outlet), S05 (total pressure at LPC outlet), S14 (physical fan speed).
+
+3. Seal Wear: Degradation of labyrinth seals between rotating and stationary components increases internal leakage. Reduces overall engine efficiency. Sensor indicators: S08 (total pressure at HPC outlet), S13 (corrected fan speed).
+
+4. Combustor Degradation: Fuel nozzle coking and liner erosion affect combustion efficiency and temperature distribution. Sensor indicators: S04, S11, S12.
+
+5. Bearing Wear: Progressive wear in main bearings leads to increased friction and vibration. Sensor indicators: S09 (physical core speed), S14, S15 (bypass ratio).
+
+Sensor Reference Guide:
+- S01: Fan inlet temperature (Total temperature)
+- S02: Total temperature at LPC outlet
+- S03: Total temperature at HPC outlet
+- S04: Total temperature at LPT inlet
+- S05: Total pressure at LPC outlet
+- S06: Physical fan speed
+- S07: Total pressure at HPC outlet
+- S08: Physical core speed
+- S09: Engine pressure ratio (P50/P2)
+- S10: HPT outlet static pressure
+- S11: Static pressure at HPC outlet
+- S12: Corrected fan speed
+- S13: Corrected core speed
+- S14: Bypass ratio
+- S15: Burner fuel-air ratio
+- S16: Bleed enthalpy
+- S17: Required fan conversion
+- S18: Unknown
+- S19: Unknown
+- S20: High-pressure turbine coolant bleed
+- S21: Low-pressure turbine coolant bleed
+
+Remaining Useful Life (RUL) Estimation:
+RUL represents the number of remaining operational cycles before an engine requires maintenance or replacement. The NASA C-MAPSS dataset labels each engine with a degradation trajectory. Key thresholds:
+- RUL > 80 cycles: HEALTHY - Engine operating normally, continue routine monitoring
+- RUL 30-80 cycles: WARNING - Engine showing degradation signs, schedule inspection
+- RUL < 30 cycles: CRITICAL - Engine nearing end of useful life, immediate maintenance required
+
+Operating Conditions:
+- Altitude: 0 to 40,000 feet
+- Mach Number: 0 to 0.84
+- Throttle Resolver Angle (TRA): 20 to 100 degrees
+- Descent rate: 0 to -1.5 ft/s
+- Three flight conditions: Cruise, Descent, Idle
+
+Fault Modes in C-MAPSS:
+- FD001: High pressure compressor degradation
+- FD002: High pressure compressor degradation + Fan degradation
+- FD003: High pressure turbine degradation
+- FD004: High pressure turbine degradation + Fan degradation
+
+Maintenance Best Practices:
+1. Monitor sensor trends over time - gradual drift indicates progressive degradation
+2. Compare current readings to healthy baseline values for each engine
+3. Pay special attention to S07, S11, S12, S14 which are most sensitive to degradation
+4. Use RUL predictions to schedule maintenance before failure occurs
+5. Track maintenance records to identify recurring patterns
+
+Normal Operating Ranges (approximate):
+- S01 (Fan inlet temp): 17-18 K (ranked)
+- S02 (LPC outlet temp): 23-25 K (ranked)
+- S03 (HPC outlet temp): 535-555 K (ranked)
+- S04 (LPT inlet temp): 1300-1400 K (ranked)
+- S05 (LPC outlet pressure): 5-6 K (ranked)
+- S06 (Physical fan speed): 2200-2400 rpm
+- S07 (HPC outlet pressure): 1400-1600 K (ranked)
+- S08 (Physical core speed): 8900-9400 rpm
+- S11 (HPC outlet static pressure): 1.3-1.5
+- S12 (Corrected fan speed): 1900-2100 rpm
+- S13 (Corrected core speed): 2300-2500 rpm
+- S14 (Bypass ratio): 8-10
+- S15 (Fuel-air ratio): 0.02-0.04
+
+Early Warning Indicators:
+- Rising S07 (HPC outlet pressure) relative to S12 indicates compressor fouling
+- Increasing S14 (bypass ratio) suggests fan degradation
+- Rising S04 (LPT inlet temperature) may indicate turbine blade damage
+- Erratic S08 (physical core speed) readings suggest mechanical issues
+- Decreasing S09 (engine pressure ratio) indicates overall efficiency loss

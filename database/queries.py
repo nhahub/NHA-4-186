@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 from datetime import datetime, timedelta
-from database.database import get_connection
+from database.database import get_connection, get_pandas_connection
 
 
 # ======================================================
@@ -171,7 +171,7 @@ def update_maintenance_status(maintenance_id, status):
 
 
 def get_maintenance_and_predictions_by_engine(engine_id):
-    conn = get_connection()
+    conn = get_pandas_connection()
     df_pred = pd.read_sql_query("""
         SELECT prediction_date, predicted_rul, health_status
         FROM predictions

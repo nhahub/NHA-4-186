@@ -50,13 +50,44 @@ prediction_mode = st.radio(
     horizontal=True,
 )
 
+DEFAULT_SENSORS = {
+    "op_setting_1": 0.0, "op_setting_2": 0.0,
+    "sensor_2": 642.7, "sensor_3": 1590.5, "sensor_4": 1408.9,
+    "sensor_6": 21.6, "sensor_7": 553.4, "sensor_8": 2388.1,
+    "sensor_9": 9065.4, "sensor_11": 47.5, "sensor_12": 521.4,
+    "sensor_13": 2388.1, "sensor_14": 8143.9, "sensor_15": 8.44,
+    "sensor_17": 393.2, "sensor_20": 38.8, "sensor_21": 23.3,
+}
+
+SENSOR_RANGES = {
+    "op_setting_1": (-0.006, 0.006, 0.0001),
+    "op_setting_2": (-0.001, 0.001, 0.0001),
+    "sensor_2": (641.0, 645.0, 0.1),
+    "sensor_3": (1570.0, 1610.0, 0.5),
+    "sensor_4": (1380.0, 1440.0, 0.5),
+    "sensor_6": (21.6, 21.62, 0.001),
+    "sensor_7": (550.0, 557.0, 0.1),
+    "sensor_8": (2387.5, 2388.5, 0.01),
+    "sensor_9": (8990.0, 9140.0, 1.0),
+    "sensor_11": (46.5, 48.5, 0.05),
+    "sensor_12": (519.0, 524.0, 0.1),
+    "sensor_13": (2387.5, 2388.5, 0.01),
+    "sensor_14": (8080.0, 8210.0, 1.0),
+    "sensor_15": (8.3, 8.6, 0.005),
+    "sensor_17": (388.0, 398.0, 0.1),
+    "sensor_20": (38.2, 39.4, 0.02),
+    "sensor_21": (22.9, 23.7, 0.01),
+}
+
 if prediction_mode == "Manual Prediction":
     with st.container(border=True):
         st.markdown('<div class="section-title">Engine Information</div>', unsafe_allow_html=True)
         col1, col2 = st.columns(2)
         engine_id = col1.number_input("Engine ID", min_value=1, value=1, step=1)
-        op1 = col2.number_input("Operating Setting 1", value=100.0)
-        op2 = col2.number_input("Operating Setting 2", value=100.0)
+        lo, hi, step = SENSOR_RANGES["op_setting_1"]
+        op1 = col2.number_input("Operating Setting 1", value=DEFAULT_SENSORS["op_setting_1"], min_value=lo, max_value=hi, step=step, format="%.4f", help=f"Valid range: {lo} to {hi}")
+        lo, hi, step = SENSOR_RANGES["op_setting_2"]
+        op2 = col2.number_input("Operating Setting 2", value=DEFAULT_SENSORS["op_setting_2"], min_value=lo, max_value=hi, step=step, format="%.4f", help=f"Valid range: {lo} to {hi}")
 
     with st.container(border=True):
         st.markdown('<div class="section-title">Sensor Measurements</div>', unsafe_allow_html=True)
@@ -64,8 +95,11 @@ if prediction_mode == "Manual Prediction":
         sensor_numbers = [2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 15, 17, 20, 21]
         cols = st.columns(3)
         for i, sensor in enumerate(sensor_numbers):
-            sensor_data[f"sensor_{sensor}"] = cols[i % 3].number_input(
-                f"Sensor {sensor}", value=100.0, key=f"sensor_{sensor}"
+            key = f"sensor_{sensor}"
+            lo, hi, step = SENSOR_RANGES[key]
+            sensor_data[key] = cols[i % 3].number_input(
+                f"Sensor {sensor}", value=DEFAULT_SENSORS[key], min_value=lo, max_value=hi, step=step,
+                format="%.4f", key=key, help=f"Valid range: {lo} to {hi}"
             )
 
     if st.button("🚀 Predict RUL", width='stretch'):

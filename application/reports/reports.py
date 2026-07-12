@@ -1,5 +1,5 @@
 import pandas as pd
-from database.database import get_connection
+from database.database import get_pandas_connection as get_connection
 
 
 # ======================================================
