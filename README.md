@@ -7,7 +7,7 @@ Built as the team project for the **Digital Egypt Pioneers Initiative (DEPI)** �
 ## Key Features
 
 - **RUL Prediction** — XGBoost regression model with SHAP explainability
-- **AI Assistant (RAG)** — Chat with your maintenance knowledge base via local LLM (LM Studio + FAISS)
+- **AI Assistant (RAG)** — Chat with your maintenance knowledge base via Groq-hosted LLM + FAISS
 - **Dashboard & Reports** — KPIs, health distribution, prediction trends, engineer activity, critical engine alerts
 - **Maintenance Management** — Log, track, and search maintenance records per engine
 - **Role-Based Access** — Admin and Engineer roles with per-user activity tracking
@@ -99,15 +99,15 @@ faiss-cpu>=1.8
 
 ### External Services (for RAG)
 
-- [LM Studio](https://lmstudio.ai/) running locally on `http://127.0.0.1:1234`
-- A loaded text-generation model (e.g. `google/gemma-4-e4b`)
+- [Groq API](https://console.groq.com/) — Free tier, provides fast inference via `llama-3.3-70b-versatile`
+- Embeddings run locally via `sentence-transformers/all-MiniLM-L6-v2` (no external service needed)
 
 ## Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/myler71/DEPI-Team-project-.git
-cd DEPI-Team-project-
+git clone https://github.com/myler71/DEPI-project-RAG.git
+cd DEPI-project-RAG
 
 # Install dependencies
 pip install -r requirements.txt
@@ -142,10 +142,32 @@ The app opens at **http://localhost:8501**.
 1. Knowledge base text is split into overlapping chunks (120 words, 20 overlap)
 2. Chunks are embedded with `all-MiniLM-L6-v2` and indexed in FAISS
 3. User queries retrieve the top-K most relevant chunks
-4. LM Studio generates a response using role-specific system prompts:
+4. Groq generates a response using role-specific system prompts:
    - **Maintenance Engineer** — technical, evidence-based
    - **Field Monitoring Worker** — plain-language with traffic-light status
    - **General User** — high-level summary with optional depth
+
+## Changelog
+
+### v2.0 — Groq Migration & Bug Fixes
+
+**Upgrades:**
+- **RAG backend migrated from LM Studio to Groq** — No longer requires a local LLM server. Uses Groq's free-tier API with `llama-3.3-70b-versatile` for fast, cloud-hosted inference. Embeddings remain local via sentence-transformers.
+- **Dashboard + Chat split UI** for the AI Assistant — Settings panel on the left (engine config, role selector, knowledge base path), chat interface on the right with welcome screen and suggestion prompts.
+- **Role-based system prompts** — Maintenance Engineer (technical/evidence-based), Field Monitoring Worker (plain-language with traffic-light indicators), General User (high-level summaries).
+- **Prediction input validation** — All sensor inputs now have min/max bounds matching the training data distribution, preventing garbage predictions from out-of-range values.
+- **Realistic default sensor values** — Inputs default to training-data means instead of `100.0`, giving meaningful predictions on first use.
+
+**Bug Fixes:**
+- Fixed `sqlite3.Row` / pandas `DataFrame` column-name mismatch — `pd.read_sql_query` was returning integer column indices instead of named columns, causing empty tables in Maintenance Records, Reports, and History pages.
+- Added `get_pandas_connection()` for all pandas queries to avoid conflicts with the dict-based row factory.
+- Fixed prediction always returning ~31 RUL — caused by all sensor inputs defaulting to `100.0`, which is hundreds of standard deviations outside the training range.
+- Fixed SHAP explanation crash with thinking models — bumped `max_tokens` from `400` to `4096` to accommodate Gemma-4's internal reasoning tokens (now handled by Groq's inference).
+
+**Observations:**
+- Groq eliminates the need for local GPU inference — anyone with an API key can run the RAG assistant on any machine.
+- The local FAISS index + sentence-transformers embeddings ensure search quality stays the same; only the text generation layer moved to the cloud.
+- Input bounds on the prediction page prevent users from accidentally breaking the model with nonsensical values — a common issue with XGBoost models trained on normalized sensor data.
 
 ## License
 
