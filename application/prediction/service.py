@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import mlflow
 
 from application.prediction.validator import (
     validate_single_input,
@@ -107,6 +109,35 @@ class PredictionService:
             "success": False,
             "message": "No valid predictions"
         }
+
+    # ======================================
+    # Log Batch Predictions to MLflow
+    # ======================================
+
+       try:
+         mlflow.set_experiment("Predictive Maintenance - Inference")
+         with mlflow.start_run(run_name="batch_prediction"):
+           mlflow.log_param("num_engines", len(preds))
+           mlflow.log_param("prediction_type", "batch")
+
+           mlflow.log_metric("avg_rul", float(np.mean(preds)))
+           mlflow.log_metric("min_rul", float(np.min(preds)))
+           mlflow.log_metric("max_rul", float(np.max(preds)))
+           mlflow.log_metric("std_rul", float(np.std(preds)))
+           mlflow.log_metric("median_rul", float(np.median(preds)))
+
+           critical = int(np.sum(preds < 30))
+           warning = int(np.sum((preds >= 30) & (preds < 75)))
+           healthy = int(np.sum(preds >= 75))
+
+           mlflow.log_metric("engines_critical", critical)
+           mlflow.log_metric("engines_warning", warning)
+           mlflow.log_metric("engines_healthy", healthy)
+
+           pred_df = pd.DataFrame({"Predicted_RUL": preds})
+           mlflow.log_table(pred_df, "predictions/batch_results.json")
+       except Exception:
+         pass
 
     # ======================================
     # Save Predictions to Database

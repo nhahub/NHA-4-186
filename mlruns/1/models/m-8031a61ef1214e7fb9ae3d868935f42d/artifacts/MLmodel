@@ -1,0 +1,22 @@
+artifact_path: file:///C:/Users/Myler/Downloads/Compressed/newproject/mlruns/1/models/m-8031a61ef1214e7fb9ae3d868935f42d/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.11.9
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.sklearn.XGBRegressor
+    model_format: ubj
+    xgb_version: 3.2.0
+mlflow_version: 3.14.0
+model_id: m-8031a61ef1214e7fb9ae3d868935f42d
+model_size_bytes: 2492575
+model_uuid: m-8031a61ef1214e7fb9ae3d868935f42d
+prompts: null
+run_id: bc6bc258768a4a56ab53f9c896c40391
+utc_time_created: '2026-07-13 16:52:23.725871'

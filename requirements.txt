@@ -13,3 +13,4 @@ xgboost>=2.0
 openai>=1.0
 sentence-transformers>=3.0
 faiss-cpu>=1.8
+mlflow>=2.0
