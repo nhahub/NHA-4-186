@@ -259,25 +259,14 @@ with col_settings:
             st.rerun()
 
 with col_chat:
-    status_html = ""
+    status_badge = ""
     if st.session_state.rag_engine is not None:
-        status_html = """
-        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.3);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.75rem;color:#2ecc71;margin-left:auto;">
-            <span style="width:6px;height:6px;background:#2ecc71;border-radius:50%;animation:pulse 2s infinite;"></span>
-            Active
-        </span>
-        """
+        status_badge = '<span style="background:rgba(46,204,113,0.2);border:1px solid rgba(46,204,113,0.3);border-radius:20px;padding:0.25rem 0.7rem;font-size:0.75rem;color:#2ecc71;">● Active</span>'
 
-    st.markdown(f"""
-    <div style="background:linear-gradient(135deg,#1e3a5f 0%,#0d2137 100%);padding:1rem 1.5rem;border-radius:12px;border:1px solid rgba(0,229,255,0.2);display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
-        <span style="font-size:2rem;">🤖</span>
-        <div>
-            <h2 style="margin:0;color:#fff;font-size:1.3rem;">TurboMind AI Assistant</h2>
-            <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.85rem;">Your intelligent maintenance companion powered by Groq</p>
-        </div>
-        {status_html}
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="background:linear-gradient(135deg,#1e3a5f 0%,#0d2137 100%);padding:1rem 1.5rem;border-radius:12px;border:1px solid rgba(0,229,255,0.2);margin-bottom:1rem;"><h2 style="margin:0;color:#fff;font-size:1.3rem;">🤖 TurboMind AI Assistant {status_badge}</h2><p style="margin:0.3rem 0 0 0;color:rgba(255,255,255,0.7);font-size:0.85rem;">Your intelligent maintenance companion powered by Groq</p></div>',
+        unsafe_allow_html=True,
+    )
 
     role_icons = {
         "Maintenance Engineer": "🔧",
@@ -285,9 +274,7 @@ with col_chat:
         "General User": "👤",
     }
     st.markdown(
-        f"""<div class="role-badge">
-            {role_icons[st.session_state.selected_role]} Responding as: <strong>{st.session_state.selected_role}</strong>
-        </div>""",
+        f'<p style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.8rem;color:#00e5ff;display:inline-block;">{role_icons[st.session_state.selected_role]} Responding as: <strong>{st.session_state.selected_role}</strong></p>',
         unsafe_allow_html=True,
     )
 
