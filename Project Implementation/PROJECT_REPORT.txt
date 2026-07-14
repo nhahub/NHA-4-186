@@ -1,0 +1,363 @@
+AI-POWERED PREDICTIVE MAINTENANCE SYSTEM
+=========================================
+Digital Egypt Pioneers Initiative (DEPI) - Microsoft Machine Learning Track
+Team Project Report
+
+========================================
+1. PROJECT OVERVIEW
+========================================
+
+This project is an AI-powered Predictive Maintenance System designed for
+aircraft turbofan engine health monitoring. The system predicts how many
+flight cycles an engine has remaining before it needs maintenance, called
+the Remaining Useful Life (RUL). It combines machine learning, explainable
+AI, a natural language assistant powered by Retrieval-Augmented Generation
+(RAG), and a complete web application for fleet management.
+
+The system is built as a full-stack web application using Streamlit. It
+allows maintenance engineers to input sensor readings from aircraft engines,
+receive RUL predictions with visual explanations, track fleet health across
+multiple engines, log maintenance activities, and generate reports. An AI
+assistant lets engineers ask natural language questions about engine health
+and maintenance procedures, receiving answers grounded in domain knowledge.
+
+The project was developed as part of the Digital Egypt Pioneers Initiative
+(DEPI), a national program focused on building AI and data science talent
+in Egypt, under the Microsoft Machine Learning track.
+
+
+========================================
+2. THE PROBLEM
+========================================
+
+Aircraft turbofan engines are equipped with dozens of sensors that continuously
+monitor parameters like temperature, pressure, fan speed, and vibration. During
+a single flight, each engine can generate thousands of data points across 17
+different sensor channels plus operating conditions.
+
+Engine failures during operation are extremely dangerous and expensive. On the
+other hand, replacing engine parts too early wastes money and reduces aircraft
+availability. The challenge is to predict exactly when an engine will need
+maintenance so that repairs can be scheduled at the right time.
+
+Traditional maintenance approaches fall into two categories: scheduled
+maintenance (replacing parts at fixed intervals regardless of condition) and
+reactive maintenance (fixing things after they break). Both are suboptimal.
+Scheduled maintenance often replaces parts that still have useful life, while
+reactive maintenance leads to unplanned downtime and potential safety risks.
+
+Predictive maintenance uses sensor data and machine learning to estimate the
+actual remaining useful life of each engine. This allows maintenance teams to
+plan interventions only when needed, reducing costs while maintaining safety.
+
+
+========================================
+3. HOW THE SYSTEM WORKS
+========================================
+
+The system follows a clear workflow that takes sensor data and turns it into
+actionable maintenance decisions.
+
+Step 1: Authentication
+----------------------
+Users log in with a username and password. The system supports two roles:
+Admin (full access to all features and reports) and Engineer (prediction and
+maintenance logging). Passwords are securely hashed using bcrypt. Each user's
+activity is tracked independently.
+
+Step 2: Input Sensor Data
+--------------------------
+Engineers have two options for providing sensor data:
+
+Manual Entry: The user enters 17 sensor readings through a form. Each input
+field has predefined valid ranges based on the training data distribution,
+which prevents users from accidentally entering values that would produce
+meaningless predictions. The default values are set to realistic averages
+from the training data.
+
+CSV Upload: For batch processing, users can upload a NASA C-MAPSS format
+file containing multiple engines and cycles. The system automatically
+processes the file, groups readings by engine, and takes the last recorded
+cycle for each engine.
+
+Step 3: RUL Prediction
+-----------------------
+The preprocessed sensor data is fed into an XGBoost regression model that has
+been trained on turbofan engine degradation data. The model outputs a single
+number representing the Remaining Useful Life in flight cycles. This number
+tells engineers how many more cycles the engine can safely operate before
+needing maintenance.
+
+Step 4: Health Status Classification
+-------------------------------------
+Based on the predicted RUL, the system assigns one of three health statuses:
+- Healthy (RUL > 80 cycles): The engine is in good condition. Continue
+  normal operations.
+- Warning (RUL 30-80 cycles): Maintenance should be scheduled soon. The
+  engine is degrading but not yet critical.
+- Critical (RUL < 30 cycles): Immediate maintenance is required. The
+  engine should be taken out of service.
+
+Step 5: Explainable AI with SHAP
+---------------------------------
+A prediction without explanation is not enough for maintenance decisions. The
+system uses SHAP (SHAPley Additive exPlanations) to show which sensor
+readings contributed most to the prediction. Two types of visualizations are
+provided: a waterfall plot showing how each feature pushes the prediction up
+or down from the baseline, and a feature importance bar chart showing the
+overall impact of each sensor.
+
+This is critical for building trust with maintenance engineers. They can see
+exactly why the model predicts a certain RUL and verify that the reasoning
+aligns with their domain knowledge.
+
+Step 6: Save and Track
+-----------------------
+Every prediction is saved to the database along with the sensor readings,
+health status, and timestamp. This creates a complete history that can be
+reviewed later, used for trend analysis, or exported as reports.
+
+
+========================================
+4. THE RAG ASSISTANT
+========================================
+
+While the prediction model tells engineers "when" an engine needs maintenance,
+it does not explain "what" to do about it. This is why we added a
+Retrieval-Augmented Generation (RAG) assistant to the system.
+
+The Problem It Solves:
+Maintenance engineers frequently need to look up information about engine
+degradation patterns, sensor behavior, fault modes, and maintenance procedures.
+Normally this involves searching through manuals, documentation, or asking
+senior engineers. The RAG assistant lets them ask questions in plain language
+and receive grounded, domain-specific answers.
+
+How It Works (Non-Technical):
+The system has a knowledge base document about NASA C-MAPSS turbofan engines
+covering degradation mechanisms (like turbine blade creep, bearing wear, and
+combustor degradation), sensor descriptions, fault modes, maintenance best
+practices, and normal operating ranges.
+
+When the system starts, this document is broken into small overlapping chunks
+of about 120 words each. Each chunk is converted into a numerical
+representation (called an embedding) using a sentence transformer model that
+runs locally on the machine. These embeddings are stored in a FAISS index,
+which is a specialized database for fast similarity search.
+
+When an engineer asks a question, like "Engine 5 is showing critical RUL,
+what should I check?", the system converts the question into an embedding
+and searches the FAISS index for the most relevant chunks from the knowledge
+base. The top matching chunks are retrieved and passed as context to a large
+language model (LLM) hosted on Groq's cloud infrastructure. The LLM generates
+a response using only the retrieved context, ensuring answers are grounded
+in the actual knowledge base rather than made up.
+
+Role-Based Responses:
+The assistant supports three different personas, each producing different
+styles of response:
+
+- Maintenance Engineer: Technical, detailed answers with specific sensor
+  references, fault codes, and evidence-based recommendations. Suitable for
+  senior engineers who need precise technical guidance.
+
+- Field Monitoring Worker: Plain-language explanations using traffic-light
+  indicators (green/yellow/red). Designed for on-site workers who need clear,
+  actionable status updates without technical jargon.
+
+- General User: High-level summaries with optional depth on demand. Suitable
+  for managers or non-technical stakeholders who need a quick overview.
+
+Technical Migration:
+The RAG system was originally built to run against a local LLM server (LM
+Studio). During development, we migrated the text generation layer to Groq's
+cloud API, which provides fast inference via the llama-3.3-70b-versatile
+model. The embeddings remain local (sentence-transformers/all-MiniLM-L6-v2)
+to ensure search quality stays the same. This migration means the assistant
+can now run on any machine with an internet connection and a Groq API key,
+without needing a local GPU or LLM server.
+
+
+========================================
+5. FLEET DASHBOARD AND MAINTENANCE TRACKING
+========================================
+
+Beyond individual predictions, the system provides a fleet-wide view of
+engine health.
+
+Fleet Health Dashboard:
+The dashboard displays five key performance indicators at a glance: number
+of critical engines, engines with warnings, healthy engines, average RUL
+across the fleet, and total fleet size. A proportional color bar shows the
+overall fleet health distribution. Individual engine cards are sorted by
+priority, with critical engines appearing first. Each card shows the engine
+ID, predicted RUL, and a visual progress bar.
+
+Priority Queue:
+A dedicated view highlights engines that need immediate attention, sorted by
+RUL from lowest to highest. This helps maintenance teams plan their work
+schedule for the day.
+
+Maintenance Logging:
+Engineers can log maintenance activities for each engine, including the
+maintenance type (inspection, repair, overhaul, part replacement, or
+emergency), status (scheduled, in progress, or completed), cost, downtime
+hours, and notes. Each record is linked to the engineer who performed it.
+
+Engine Drill-Down:
+For any specific engine, engineers can see the complete prediction history
+alongside maintenance records. A trend chart shows RUL over time with
+maintenance events overlaid as markers, making it easy to see how
+maintenance actions affect engine health.
+
+
+========================================
+6. REPORTS AND EXPORT
+========================================
+
+The system includes a comprehensive reporting module with six sections:
+
+Dashboard: System-wide KPIs showing total users, predictions, maintenance
+records, and critical engines.
+
+Critical Engines: A filtered view of all engines currently in critical or
+high-risk status, with their latest RUL values and recommended actions.
+
+Prediction History: Complete log of all predictions made across the system,
+filterable by engine and health status.
+
+Maintenance History: All maintenance records with search and filtering
+capabilities.
+
+Analytics: Five interactive charts built with Plotly:
+  - Health status distribution (donut chart)
+  - Prediction trend over time (line chart)
+  - Maintenance type breakdown (bar chart)
+  - Engineer activity comparison (grouped bar chart)
+  - Critical engines ranked by RUL (horizontal bar chart)
+
+Export: Full Excel workbook with four sheets (Dashboard, Predictions,
+Maintenance, Critical Engines), individual CSV downloads for each section,
+and PDF reports for individual predictions using ReportLab.
+
+
+========================================
+7. MLFLOW EXPERIMENT TRACKING
+========================================
+
+To manage model experiments systematically, we integrated MLflow into the
+project. MLflow is an open-source platform for tracking machine learning
+experiments.
+
+What We Track:
+- Training experiments: The ai/train.py script runs multiple XGBoost
+  experiments with different hyperparameters (number of trees, tree depth,
+  learning rate, subsampling). Each run logs parameters, evaluation metrics
+  (RMSE, MAE, R2, MAPE), the trained model artifact, and five
+  visualizations (RUL distribution, prediction vs actual scatter plot,
+  feature importance, residuals, and health distribution).
+
+- Inference monitoring: When batch predictions are made through the web
+  application, metrics are logged to a separate MLflow experiment. This
+  includes average RUL, minimum/maximum/median RUL, and counts of engines
+  in each health category. This helps monitor model behavior in production.
+
+Experiments Conducted:
+Six training experiments were conducted with varying configurations:
+  1. Baseline (100 trees, depth 6)
+  2. Deeper model (150 trees, depth 10)
+  3. More trees (300 trees, depth 6)
+  4. Lower learning rate (200 trees, depth 6, lr 0.05)
+  5. Regularized (200 trees, subsampling 0.8)
+  6. Custom parameters via CLI
+
+The MLflow UI (accessible via mlflow ui command) provides a web dashboard
+to compare all experiments side by side, view parameter importance, and
+download saved models.
+
+
+========================================
+8. TECHNICAL ARCHITECTURE
+========================================
+
+The system is organized into four layers:
+
+Frontend Layer (Streamlit):
+  - Login/Signup page
+  - Prediction page (Manual + CSV modes)
+  - AI Assistant page (RAG chat)
+  - Maintenance Dashboard
+  - Maintenance Records (log, drill-down, browse)
+  - Reports page (analytics, export)
+
+Application Layer (Python):
+  - AuthService: authentication, registration, password hashing
+  - PredictionService: orchestrates prediction, validation, SHAP, DB save
+  - RAGEngine: text chunking, embedding, FAISS search, Groq generation
+  - Report queries: 13 SQL query functions for dashboards and analytics
+  - Export module: PDF (ReportLab) and Excel (openpyxl) generation
+
+Machine Learning Layer:
+  - XGBoost regression model (pre-trained, serialized as .pkl)
+  - StandardScaler for feature normalization
+  - SHAP TreeExplainer for model interpretability
+  - MLflow for experiment tracking
+  - sentence-transformers + FAISS for RAG embeddings and search
+
+Data Layer (SQLite):
+  - users: authentication and role management
+  - predictions: RUL predictions linked to users and engines
+  - sensor_readings: raw sensor data for each prediction
+  - maintenance: maintenance activity records
+
+
+========================================
+9. CHALLENGES AND LESSONS LEARNED
+========================================
+
+RAG Migration: We initially built the RAG system against a local LLM server
+(LM Studio). Migrating to Groq's cloud API required adjusting the API client,
+updating token limits (from 400 to 4096 to accommodate thinking model tokens),
+and ensuring the Groq API key is not hardcoded in the repository (GitHub push
+protection blocks committed secrets).
+
+Prediction Defaults: The prediction page initially defaulted all sensor inputs
+to 100.0, which was hundreds of standard deviations outside the training
+distribution. This caused every prediction to return approximately 31 RUL
+regardless of the actual engine state. We fixed this by setting defaults to
+training-data means and adding min/max bounds to each input field.
+
+Database Compatibility: The migration from sqlite3.Row to a custom dict_factory
+for dictionary-style row access broke pandas read_sql_query calls, which
+expected sqlite3.Row. We resolved this by adding a separate get_pandas_connection
+function that uses the standard Row factory for pandas operations.
+
+MLflow Integration: The training script initially produced perfect predictions
+(R2 = 1.0) because the data generation always collapsed to the last cycle
+of each engine (RUL = 0). We fixed this by generating engines at different
+points in their lifecycle and using all cycles for training rather than only
+the final cycle.
+
+Model Interpretability: Thinking models consumed internal reasoning tokens
+that were not counted toward the output limit. Setting max_tokens to 4096
+resolved the truncation issue that was cutting off SHAP explanations.
+
+
+========================================
+10. CONCLUSION
+========================================
+
+The AI-Powered Predictive Maintenance System demonstrates how machine learning
+can be integrated into a practical engineering workflow. By combining XGBoost
+prediction, SHAP explainability, RAG-assisted knowledge retrieval, and
+MLflow experiment tracking into a single web application, the system
+provides maintenance engineers with a complete tool for monitoring engine
+health, making informed decisions, and tracking maintenance activities.
+
+The system is designed to be accessible to users with different technical
+backgrounds through role-based interfaces and an AI assistant that adapts
+its communication style. The experiment tracking capabilities ensure that
+model improvements can be systematically evaluated and compared.
+
+This project was developed for educational purposes under the Digital Egypt
+Pioneers Initiative (DEPI), Microsoft Machine Learning track.

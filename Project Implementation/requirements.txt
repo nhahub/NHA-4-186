@@ -1,0 +1,16 @@
+streamlit>=1.58
+pandas>=2.3
+numpy>=2.4
+matplotlib>=3.10
+shap>=0.51
+joblib>=1.5
+bcrypt>=5.0
+plotly>=6.8
+reportlab>=5.0
+openpyxl>=3.1
+scikit-learn>=1.9
+xgboost>=2.0
+openai>=1.0
+sentence-transformers>=3.0
+faiss-cpu>=1.8
+mlflow>=2.0
